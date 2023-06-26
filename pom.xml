@@ -1,0 +1,110 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.gatling.demo</groupId>
+  <artifactId>gatling-demostore</artifactId>
+  <version>3.8.4</version>
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <gatling.version>${project.version}</gatling.version>
+    <gatling-maven-plugin.version>4.2.7</gatling-maven-plugin.version>
+    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+    <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+    <scala-maven-plugin.version>4.4.0</scala-maven-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.gatling.highcharts</groupId>
+      <artifactId>gatling-charts-highcharts</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.gatling</groupId>
+      <artifactId>gatling-app</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.gatling</groupId>
+      <artifactId>gatling-recorder</artifactId>
+      <version>${gatling.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${maven-jar-plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>${scala-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <jvmArgs>
+                <jvmArg>-Xss100M</jvmArg>
+              </jvmArgs>
+              <args>
+                <arg>-target:jvm-1.8</arg>
+                <arg>-deprecation</arg>
+                <arg>-feature</arg>
+                <arg>-unchecked</arg>
+                <arg>-language:implicitConversions</arg>
+                <arg>-language:postfixOps</arg>
+              </args>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.gatling</groupId>
+        <artifactId>gatling-maven-plugin</artifactId>
+        <version>${gatling-maven-plugin.version}</version>
+        <configuration>
+          <!--                    <enterpriseUrl>http://localhost:10542</enterpriseUrl>-->
+          <!--                    <apiToken>CsNs4a7U6kdK14jlPJJqYd.BdgF5OWy5puLRcupqEnXHEmYF0ePiDZFNqFarfOCEX</apiToken>-->
+<!--          <apiToken>013xcKfvjhWFSwaUAf8z6kFUIdy6Q2.QKT0cwLnrUBF740GutQpyNy5d.TwDeei0t</apiToken>-->
+          <!-- Simulation that needs to be started, you will be able to create a new simulation if empty -->
+          <!-- You can also use the gatling.enterprise.simulationId system property -->
+          <!--                    <simulationId>48e24826-89fe-434b-94be-429536c3d90e</simulationId>-->
+          <!-- Default package when creating a new simulation -->
+          <!-- You can also use the gatling.enterprise.packageId system property -->
+          <!--                    <packageId>YOUR_PACKAGE_ID</packageId>-->
+          <!-- Default team when creating a new simulation -->
+          <!-- You can also use the gatling.enterprise.teamId system property -->
+          <!--                    <teamId>YOUR_TEAM_ID</teamId>-->
+          <!-- Fully-qualified class name of the simulation used when creating a new simulation -->
+          <!-- You can also use the gatling.simulationClass system property -->
+          <simulationClass>test.java.gatlingdemostore.DemostoreSimulation</simulationClass>
+          <!-- Custom system properties used when running the simulation on Gatling Enterprise -->
+          <simulationSystemProperties>
+            <key1>VALUE_1</key1>
+            <key2>VALUE_2</key2>
+          </simulationSystemProperties>
+          <!-- Additional environment variables used when running the simulation on Gatling Enterprise -->
+          <simulationEnvironmentVariables>
+            <key1>VALUE_1</key1>
+            <key2>VALUE_2</key2>
+          </simulationEnvironmentVariables>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>io.gatling</groupId>
+        <artifactId>gatling-maven-plugin</artifactId>
+        <version>${gatling-maven-plugin.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
