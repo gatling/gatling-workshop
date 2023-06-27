@@ -10,7 +10,7 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 
 public class DemostoreSimulation extends Simulation {
 
-    private static final String DOMAIN = "demostore.gatling.io";
+    private static final String DOMAIN = "demostore-X.sandbox.gatling.io";
     private static final HttpProtocolBuilder HTTP_PROTOCOL = http.baseUrl("http://" + DOMAIN);
 
     private final ScenarioBuilder scn =

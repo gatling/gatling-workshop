@@ -9,6 +9,17 @@ Here is what's you might expect to learn shall you decide to stick with us durin
 - How to use useful tools of our DSL, that will allow you to closely simulate user's behaviour, perform automated checks, save variables etc. 
 - Analyse graphs
 
+## Au menu
+1. [Prerequisites](#prerequisites)
+2. [First run](#first-run)
+3. [Explore the DSL](#explore-the-dsl)
+4. [Chain requests](#chain-requests)
+5. [Feeders](#feeders)
+6. [Refactoring](#refactoring)
+7. [Save global variables](#save-global-variables)
+8. [User sessions](#user-sessions)
+9. [Injection profiles](#injection-profiles)
+
 # Prerequisites
 
 Beforehand, I'll let you visit our [cloud](https://cloud.gatling.io/) and create your account there. It's entirely free and you'll get 60 minutes to start playing around. Which is more than enough to complete this workshop !  
@@ -24,10 +35,10 @@ First of all, here is the Hello world simulation I was mentioning earlier :
 ```java 
 public class DemostoreSimulation extends Simulation {
 
-    private static final String DOMAIN = "demostore.gatling.io";                                // 1
-    private static final HttpProtocolBuilder HTTP_PROTOCOL = http.baseUrl("https://" + DOMAIN); // 2
+    private static final String DOMAIN = "demostore-X.sandbox.gatling.io";                      // 1
+    private static final HttpProtocolBuilder HTTP_PROTOCOL = http.baseUrl("http://" + DOMAIN); // 2
 
-    private static final ScenarioBuilder scn =
+    private final ScenarioBuilder scn =
             scenario("Browse glasses")                                                          // 3
                     .exec(
                             http("Load Home Page")                                              // 4
@@ -51,22 +62,26 @@ public class DemostoreSimulation extends Simulation {
 > But first, we need to package this simulation into a nice jar file. In order to do so we'll use the gatling maven plugin : 
 > 
 > ```bash 
-> mvn gatling:enterprisePackage
+> ./mvnw gatling:enterprisePackage
 > ```
 > 
-> Nice, now we can go to our [cloud](https://cloud.gatling.io/), in the simulation tab hit **create**, enter a name for the simulation, pick the default team and hit **create new package** since you don't already have one available.
-> Choose a name for your package, browse your laptop to the `/target/gatling-demostore-3.8.4-shaded.jar` that has been created previously.
-> Pick the only available simulation class, the one we will be working on.
-> Finally, select your favorite location. Just so you know, our demostores are deployed in Paris, might as well be close to them but not mandatory, if you feel Japanese today follow your instincts.
-> Hit **save** to create your simulation. Now it is time to give it a first go, you can click on the start simulation button.
-> In about a minute or so, you'll get your graphs ready, in the meantime we can go on with the workshop ! 
+> That just created a gatling readable package in the form of a jar file containing a bit of metadata to build a nice cloud experience.  
+> 
+> Nice, now we can go to our [cloud](https://cloud.gatling.io/), in the simulation tab hit **create**. 
+> - Enter a name for the simulation, pick the default team and hit **create new package** since you don't already have one available.  
+> - Choose a name for your package, browse your laptop to the `/target/gatling-demostore-3.8.4-shaded.jar` that has been created previously.
+> - Pick the only available simulation class, the one we will be working on.
+> - Finally, select your favorite location. Just so you know, our demostores are deployed in Paris, might as well be close to them but not mandatory, if you feel Japanese today follow your instincts.
+> - Hit **save** to create your simulation. Now it is time to give it a first go, you can click on the start simulation button.
+> 
+> In about a minute or so, you'll get your graphs ready, in the meantime we can go on with the workshop !
+
+# Explore the DSL
 
 Now, usually when users browse glasses, they do not simply load the home page. Let's make them browse through the "all" category and click on a few items.
-Of course, they are not robots, so we'll also add artificial pauses, to make it more realistic. 
+Of course, they are not robots, so we'll also add artificial pauses, to make it more realistic.
 
-## Explore the DSL
-
-### Chain requests
+## Chain requests
 
 ```java 
             scenario("Browse glasses")
@@ -83,9 +98,11 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
                     .pause(2)
                     .exec(http("Load Product Page").get("/product/deepest-blue"))
 ```
-> Let's run it again, to see if it works, and how different requests are handled in our results page. 
-> But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach: building and uploading the package to the cloud in one single CLI command. 
-> In order to do so, we first need to create an **API token**. On the **token** page, hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI.
+> We would be interested in running it again, to see if it works, and how different requests are handled in our results page.   
+> 
+> But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach: building and uploading the package to the cloud in one single CLI command.    
+> In order to do so, we first need to create an **API token**.   
+> On the **token** page, hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI (No need to configure team roles, as you already have the highest role at the organization level).  
 > Click **save** to generate the token, copy and paste it in the pom.xml under the `gatling-maven-plugin` section like so :
 > 
 > ```xml
@@ -95,28 +112,29 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
 >     <artifactId>gatling-maven-plugin</artifactId>
 >     <version>${gatling-maven-plugin.version}</version>
 >     <configuration>
->         <apiToken>{YOUR_TOKEN}</apiToken>
+>         <apiToken>YOUR_TOKEN</apiToken>
 >     </configuration>
 > </plugin>
 > ```
-> We also need to configure maven to use the previously created package. Go to the **package** page, on the right side of your package row, there is a **copy to clipboard** button.
+> We also need to configure maven to use the previously created package.   
+> Go to the **package** page, on the right side of your package row, there is a **copy to clipboard** button.
 > Then add it next to the `<apiToken>` configuration under `<packageId>`
 > 
 > Finally, you can now 
 > ```bash 
-> mvn gatling:enterpriseUpload
+> ./mvnw gatling:enterpriseUpload
 > ```
 > ```bash
-> mvn gatling:enterpriseStart
+> ./mvnw gatling:enterpriseStart
 > ```
-> And let the CLI guide you through the steps. 
+> And let the CLI guide you through the steps.   
 > Once your simulation started, you should see it running on your simulations page!
+
+## Feeders 
 
 Nice ! It's starting to look like an actual user workflow. But we still have a problem. Do you see it coming ? ...  
 If we were to simulate thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit shall we ?
 
-
-### Feeders 
 
 So we'll create a CSV feeder from which each simulated user will randomly choose a particular type of glasses to browse.
 So let's add a data/search.csv file containing : 
@@ -165,8 +183,8 @@ Ok cool, now it's randomized ! We have a first coherent visitor journey.
 Let's tidy up things before we go on with more complex flows. 
 
 
-### Refactoring 
-
+## Refactoring 
+    
 First we can divide our scenario into request chains. 
 Let's extract each request into its dedicated chain : 
 
@@ -227,10 +245,10 @@ And then view cart :
                     .exec(addRandomProduct)
                     .exec(viewCart);
 ```
-
+## Example
 Ok now our users have an item in their carts, but they can't checkout as they are not logged in. Let's log them in. 
 
-### Save global variables
+## Save global variables
 
 ```java 
     ChainBuilder login = exec(http("Login page").get("/login"))
@@ -252,12 +270,12 @@ Ok now our users have an item in their carts, but they can't checkout as they ar
                     .exec(login);
 ```
 
-And that is not functional, we get an error on the login attempt. Why will you ask me ? 
-Because Spring Security protects forms from csrf attacks by expecting a CSRF token that we did not provide. 
+And that is not functional, we get an error on the login attempt. Why will you ask me ?  
+Because Spring Security protects forms from csrf attacks by expecting a **CSRF token** that we did not provide. 
 But in order to add it in the request, we must first retrieve it from the home page, and that is a great way to learn variabilisation in gatling.  
 Damn this transition is so neat it looks like it was all part of a master plan. 
 
-The `check` keywork in gatling DSL allows for many things related to reading the response we get from the request. 
+The `check` keyword in gatling DSL allows for many things related to reading the response we get from the request. 
 One can perform actual checks, like verifying the presence of a string, or a return value. 
 But it is also useful to save response elements in a variable that will be accessible later on. That is what we are going to do to retrieve the _csrf token.
 
@@ -297,15 +315,20 @@ Now it works, we can proceed to checkout :
                     .exec(checkoutCart);
 ```
 
-Ok, that is quite nice, but we would like to verify the cart total for each user. That is not necessarily linked to the app's performance (though it might), but we also like functional testing. (And it helps me with my transitions).
+Ok, that is quite nice, but we would like to verify the cart total for each user. That is not necessarily linked to the app's performance (though it might), but we also like functional testing. (And it helps me with my transitions).  
+
 That means that we need to remember the current cart total price for each user. 
-Unfortunately, the `check` keyword won't help here, because it's global. 
+Unfortunately, the `check` keyword won't help here, because it's global.   
 We need to introduce a new concept : the Session
 
-### User sessions
+## User sessions
 
 One of the first benefits of using a session, is that we can store user local variables. 
 Let's initialize the expected cart total to 0.00 at the beginning : 
+
+```java 
+    private static final String CART_TOTAL_LABEL = "cartTotal";
+```
 
 ```java 
             scenario("Browse glasses")
@@ -361,7 +384,7 @@ You'll notice that I inverted the login and the view cart requests. That is beca
 OK nice, now we got ourselves a nice purchase flow. But all our users are expected to purchase? Unfortunately not. 
 If we want to be realistic, we need to model that as well in our tests. 
 
-### Injection profiles 
+## Injection profiles 
 
 First, let's define 3 different flows : 
 - The purchaser, the one we already have;
@@ -436,8 +459,9 @@ now that I said that, let's first perform a soak test :
  setUp(scn.injectOpen(constantUsersPerSec(10).during(20))).protocols(HTTP_PROTOCOL);
 ```
 
-> After the test has run on the cloud we can take a quick tour on the results. 
-> Notably the one I want to emphasize lies in the **Users** tab. 
+> After the test has run on the cloud we can take a quick tour on the results.   
+> Notably the one I want to emphasize lies in the **Users** tab.   
+> 
 > Here, our open injection profile directly shapes the **Users Arrival Rate**  which shall reflect a **constantUsersPerSec**, the rest is determined by the duration of the flow of a single user. 
 > This dependence is completely reversed when we use a closed model. 
 
@@ -465,9 +489,9 @@ This is entirely possible by combining multiple **regular DSL** profiles togethe
         ).protocols(HTTP_PROTOCOL));
 ```
 
-> Once we run it, we can take a look in the results page at the **Response Time Percentiles** graph for instance.  
-> From there, depending on the level of performance required we can pin (by right clicking) on the graph the moment where it started being unacceptable. 
-> It could be for instance that we want at least 99% of our users to experience a latency below 1 second. Which happened when the 99th percentile reached 1 second. 
+> Once we run it, we can take a look in the results page at the **Response Time Percentiles** graph for instance.    
+> From there, depending on the level of performance required we can pin (by right clicking) on the graph the moment where it started being unacceptable.   
+> It could be for instance that we want at least 99% of our users to experience a latency below 1 second. Which happened when the 99th percentile reached 1 second.   
 > Then, on the **Users** tab, we can see how many concurrent users were on the site at that exact moment, which gives us a good approximation of the capacity of our servers.
 
 Now we know approximately how high in capacity our infrastructure can go as of today. Let's make sure that we won't introduce any regressions in our next deployments.
@@ -475,8 +499,8 @@ Let's integrate load testing in our CI pipeline !
 
 ### Assertions
 
-It's fairly easy to integrate gatling in a CI Pipeline, we have many plugins for different CI tools, and simply use a docker image containing gatling CLI to interact with our cloud. 
-Here, we will focus on how to automate checks on key metrics that we want to keep an eye on.
+It's fairly easy to integrate gatling in a CI Pipeline, we have many plugins for different CI tools, and simply use a docker image containing gatling CLI to interact with our cloud.   
+Here, we will focus on how to automate checks on key metrics that we want to keep an eye on.  
 For that we are going to use **assertions**, you can find all documentation [here](https://gatling.io/docs/gatling/reference/current/core/assertions/) on how to craft them, but here is our example :
 
 ```java 
