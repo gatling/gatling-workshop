@@ -19,6 +19,7 @@ Here is what's you might expect to learn shall you decide to stick with us durin
 7. [Save global variables](#save-global-variables)
 8. [User sessions](#user-sessions)
 9. [Injection profiles](#injection-profiles)
+10. [Assertions](#assertions)
 
 # Prerequisites
 
