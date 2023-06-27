@@ -44,15 +44,15 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>${maven-jar-plugin.version}</version>
       </plugin>
-<!--      <plugin>-->
-<!--         <groupId>io.gatling</groupId>-->
-<!--         <artifactId>gatling-maven-plugin</artifactId>-->
-<!--         <version>${gatling-maven-plugin.version}</version>-->
-<!--         <configuration>-->
+      <plugin>
+         <groupId>io.gatling</groupId>
+         <artifactId>gatling-maven-plugin</artifactId>
+         <version>${gatling-maven-plugin.version}</version>
+         <configuration>
 <!--             <apiToken>YOUR_TOKEN_API_TOKEN</apiToken>-->
 <!--             <packageId>YOUR_PACKAGE_ID</packageId>-->
-<!--         </configuration>-->
-<!--      </plugin>-->
+         </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
