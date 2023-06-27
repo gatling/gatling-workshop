@@ -9,7 +9,13 @@ Here is what's you might expect to learn shall you decide to stick with us durin
 - How to use useful tools of our DSL, that will allow you to closely simulate user's behaviour, perform automated checks, save variables etc. 
 - Analyse graphs
 
-Beforehand, I'll let you visit our [cloud](https://cloud.gatling.io/) and create your account there. It's entirely free and you'll get 60 minutes to start playing around. Which is more than enough to complete this workshop !
+# Prerequisites
+
+Beforehand, I'll let you visit our [cloud](https://cloud.gatling.io/) and create your account there. It's entirely free and you'll get 60 minutes to start playing around. Which is more than enough to complete this workshop !  
+Then, please ensure you have:
+* Java 17 installed
+* This repo cloned on your machine
+* The project opened in your favorite IDE 
 
 # First run
 
@@ -78,8 +84,8 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
                     .exec(http("Load Product Page").get("/product/deepest-blue"))
 ```
 > Let's run it again, to see if it works, and how different requests are handled in our results page. 
-> But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach, the CLI. 
-> In order to do so, we first need to create an **API token**. On the **token** page and  hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI.
+> But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach: building and uploading the package to the cloud in one single CLI command. 
+> In order to do so, we first need to create an **API token**. On the **token** page, hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI.
 > Click **save** to generate the token, copy and paste it in the pom.xml under the `gatling-maven-plugin` section like so :
 > 
 > ```xml
@@ -104,9 +110,10 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
 > mvn gatling:enterpriseStart
 > ```
 > And let the CLI guide you through the steps. 
+> Once your simulation started, you should see it running on your simulations page!
 
 Nice ! It's starting to look like an actual user workflow. But we still have a problem. Do you see it coming ? ...  
-If we were to simulation thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit shall we ?
+If we were to simulate thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit shall we ?
 
 
 ### Feeders 
@@ -469,7 +476,7 @@ Let's integrate load testing in our CI pipeline !
 ### Assertions
 
 It's fairly easy to integrate gatling in a CI Pipeline, we have many plugins for different CI tools, and simply use a docker image containing gatling CLI to interact with our cloud. 
-No, here we will focus on how to automate checks on key metrics that we want to keep an eye on.
+Here, we will focus on how to automate checks on key metrics that we want to keep an eye on.
 For that we are going to use **assertions**, you can find all documentation [here](https://gatling.io/docs/gatling/reference/current/core/assertions/) on how to craft them, but here is our example :
 
 ```java 
@@ -479,7 +486,7 @@ For that we are going to use **assertions**, you can find all documentation [her
                 );
 ```
 - global : statistics calculated on all requests  
-- percentile4 : By default the 99th
+- percentile4 : By default the 99th percentile
 - lt : lower than (in milliseconds)
 
 > We can see in the interface that the assertion has probably failed, and that is something we can use to fail a CI for instance. 
