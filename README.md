@@ -1,4 +1,6 @@
-Hello fellow testers, welcome to our Gatling Workshop.
+### Hello fellow testers, welcome to our Gatling Workshop.
+
+# Introduction
 
 Here is what's you might expect to learn shall you decide to stick with us during the approximately an hour and a half : 
 
@@ -7,24 +9,27 @@ Here is what's you might expect to learn shall you decide to stick with us durin
 - How to use useful tools of our DSL, that will allow you to closely simulate user's behaviour, perform automated checks, save variables etc. 
 - Analyse graphs
 
+Beforehand, I'll let you visit our [cloud](https://cloud.gatling.io/) and create your account there. It's entirely free and you'll get 60 minutes to start playing around. Which is more than enough to complete this workshop !
+
+# First run
 
 First of all, here is the Hello world simulation I was mentioning earlier : 
 
 ```java 
 public class DemostoreSimulation extends Simulation {
 
-    private static final String DOMAIN = "demostore.gatling.io";                                    // 1
-    private static final HttpProtocolBuilder HTTP_PROTOCOL = http.baseUrl("https://" + DOMAIN);     // 2
+    private static final String DOMAIN = "demostore.gatling.io";                                // 1
+    private static final HttpProtocolBuilder HTTP_PROTOCOL = http.baseUrl("https://" + DOMAIN); // 2
 
     private static final ScenarioBuilder scn =
-            scenario("Browse glasses")                                                              // 3
+            scenario("Browse glasses")                                                          // 3
                     .exec(
-                            http("Load Home Page")                                                  // 4
-                                    .get("/")                                                       // 5
+                            http("Load Home Page")                                              // 4
+                                    .get("/")                                                   // 5
                     );
 
     {
-        setUp(scn.injectOpen(atOnceUsers(1))).protocols(HTTP_PROTOCOL);                             // 6 
+        setUp(scn.injectOpen(atOnceUsers(1))).protocols(HTTP_PROTOCOL);                         // 6 
     }
 }
 ```
@@ -33,11 +38,27 @@ public class DemostoreSimulation extends Simulation {
 - 3 : The name of your scenario as it will appear in the reports.
 - 4 : The name of the request as it will appear on the reports
 - 5 : The METHOD and PATH of the request
-- 6 : The injection profile. Here we define a smoke test, we shoot once 1 user. 
+- 6 : The injection profile. Here we define a smoke test, we shoot once 1 user.
 
+
+> We could run this simulation on the cloud to familiarize with the interface. 
+> But first, we need to package this simulation into a nice jar file. In order to do so we'll use the gatling maven plugin : 
+> 
+> ```bash 
+> mvn gatling:enterprisePackage
+> ```
+> 
+> Nice, now we can go to our [cloud](https://cloud.gatling.io/), in the simulation tab hit **create**, enter a name for the simulation, pick the default team and hit **create new package** since you don't already have one available.
+> Choose a name for your package, browse your laptop to the `/target/gatling-demostore-3.8.4-shaded.jar` that has been created previously.
+> Pick the only available simulation class, the one we will be working on.
+> Finally, select your favorite location. Just so you know, our demostores are deployed in Paris, might as well be close to them but not mandatory, if you feel Japanese today follow your instincts.
+> Hit **save** to create your simulation. Now it is time to give it a first go, you can click on the start simulation button.
+> In about a minute or so, you'll get your graphs ready, in the meantime we can go on with the workshop ! 
 
 Now, usually when users browse glasses, they do not simply load the home page. Let's make them browse through the "all" category and click on a few items.
-Of course they are not robots, so we'll also add artificial pauses, to make it more realistic. 
+Of course, they are not robots, so we'll also add artificial pauses, to make it more realistic. 
+
+## Explore the DSL
 
 ### Chain requests
 
@@ -56,7 +77,33 @@ Of course they are not robots, so we'll also add artificial pauses, to make it m
                     .pause(2)
                     .exec(http("Load Product Page").get("/product/deepest-blue"))
 ```
-
+> Let's run it again, to see if it works, and how different requests are handled in our results page. 
+> But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach, the CLI. 
+> In order to do so, we first need to create an **API token**. On the **token** page and  hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI.
+> Click **save** to generate the token, copy and paste it in the pom.xml under the `gatling-maven-plugin` section like so :
+> 
+> ```xml
+> 
+> <plugin>
+>     <groupId>io.gatling</groupId>
+>     <artifactId>gatling-maven-plugin</artifactId>
+>     <version>${gatling-maven-plugin.version}</version>
+>     <configuration>
+>         <apiToken>{YOUR_TOKEN}</apiToken>
+>     </configuration>
+> </plugin>
+> ```
+> We also need to configure maven to use the previously created package. Go to the **package** page, on the right side of your package row, there is a **copy to clipboard** button.
+> Then add it next to the `<apiToken>` configuration under `<packageId>`
+> 
+> Finally, you can now 
+> ```bash 
+> mvn gatling:enterpriseUpload
+> ```
+> ```bash
+> mvn gatling:enterpriseStart
+> ```
+> And let the CLI guide you through the steps. 
 
 Nice ! It's starting to look like an actual user workflow. But we still have a problem. Do you see it coming ? ...  
 If we were to simulation thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit shall we ?
@@ -109,6 +156,9 @@ And then use it to inject values in our requests :
 
 Ok cool, now it's randomized ! We have a first coherent visitor journey. 
 Let's tidy up things before we go on with more complex flows. 
+
+
+### Refactoring 
 
 First we can divide our scenario into request chains. 
 Let's extract each request into its dedicated chain : 
@@ -172,6 +222,8 @@ And then view cart :
 ```
 
 Ok now our users have an item in their carts, but they can't checkout as they are not logged in. Let's log them in. 
+
+### Save global variables
 
 ```java 
     ChainBuilder login = exec(http("Login page").get("/login"))
@@ -243,6 +295,8 @@ That means that we need to remember the current cart total price for each user.
 Unfortunately, the `check` keyword won't help here, because it's global. 
 We need to introduce a new concept : the Session
 
+### User sessions
+
 One of the first benefits of using a session, is that we can store user local variables. 
 Let's initialize the expected cart total to 0.00 at the beginning : 
 
@@ -300,6 +354,8 @@ You'll notice that I inverted the login and the view cart requests. That is beca
 OK nice, now we got ourselves a nice purchase flow. But all our users are expected to purchase? Unfortunately not. 
 If we want to be realistic, we need to model that as well in our tests. 
 
+### Injection profiles 
+
 First, let's define 3 different flows : 
 - The purchaser, the one we already have;
 - The browser, they are only taking a look at the catalog.
@@ -343,7 +399,7 @@ A way to define that would be :
 ```java 
     ScenarioBuilder scn =
             scenario("Default scenario")
-                    .during(Duration.ofSeconds(20))
+                    .during(Duration.ofSeconds(10))
                     .on(
                             randomSwitch().on(
                                     Choice.withWeight(75.00, exec(browser)),
@@ -368,4 +424,63 @@ We will dig into the open models here. It is possible to combine different injec
 
 Ok
 now that I said that, let's first perform a soak test : 
+
+```java 
+ setUp(scn.injectOpen(constantUsersPerSec(10).during(20))).protocols(HTTP_PROTOCOL);
+```
+
+> After the test has run on the cloud we can take a quick tour on the results. 
+> Notably the one I want to emphasize lies in the **Users** tab. 
+> Here, our open injection profile directly shapes the **Users Arrival Rate**  which shall reflect a **constantUsersPerSec**, the rest is determined by the duration of the flow of a single user. 
+> This dependence is completely reversed when we use a closed model. 
+
+Ok now let's progressively push a bit our app to see how it responds to higher loads. Let's make it a capacity test !
+
+First approach, we could define a profile like so : 
+
+```java 
+       setUp(scn.injectOpen(rampUsersPerSec(0).to(40).during(20)).protocols(HTTP_PROTOCOL));
+```
+
+This will continuously ramp up the number of new users arriving on the website every second from 0 to 40. 
+This is a good first approach, but it does not let time to the system to stabilize, so we are not sure that we would have the same results with a soak test for each value.
+
+We tend to prefer to craft a **staircase** profile where we regularly increment the number of new users per second, but leave it steady for a few seconds.
+This is entirely possible by combining multiple **regular DSL** profiles together with `map` and `flatmap`, but there is also an alternative  **meta DSL** : 
+
+```java 
+        setUp(scn.injectOpen(
+                incrementUsersPerSec(15)
+                        .times(5)
+                        .eachLevelLasting(Duration.ofSeconds(10))
+                        .separatedByRampsLasting(Duration.ofSeconds(10))
+                        .startingFrom(10)
+        ).protocols(HTTP_PROTOCOL));
+```
+
+> Once we run it, we can take a look in the results page at the **Response Time Percentiles** graph for instance.  
+> From there, depending on the level of performance required we can pin (by right clicking) on the graph the moment where it started being unacceptable. 
+> It could be for instance that we want at least 99% of our users to experience a latency below 1 second. Which happened when the 99th percentile reached 1 second. 
+> Then, on the **Users** tab, we can see how many concurrent users were on the site at that exact moment, which gives us a good approximation of the capacity of our servers.
+
+Now we know approximately how high in capacity our infrastructure can go as of today. Let's make sure that we won't introduce any regressions in our next deployments.
+Let's integrate load testing in our CI pipeline !
+
+### Assertions
+
+It's fairly easy to integrate gatling in a CI Pipeline, we have many plugins for different CI tools, and simply use a docker image containing gatling CLI to interact with our cloud. 
+No, here we will focus on how to automate checks on key metrics that we want to keep an eye on.
+For that we are going to use **assertions**, you can find all documentation [here](https://gatling.io/docs/gatling/reference/current/core/assertions/) on how to craft them, but here is our example :
+
+```java 
+        setUp(scn.injectOpen(constantUsersPerSec(40).during(50))).protocols(HTTP_PROTOCOL)
+                .assertions(
+                        global().responseTime().percentile4().lt(1000)
+                );
+```
+- global : statistics calculated on all requests  
+- percentile4 : By default the 99th
+- lt : lower than (in milliseconds)
+
+> We can see in the interface that the assertion has probably failed, and that is something we can use to fail a CI for instance. 
 
