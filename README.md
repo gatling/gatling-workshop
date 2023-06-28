@@ -180,6 +180,8 @@ And then use it to inject values in our requests :
         .exec(http("Load Product Page : #{path}").get("/product/#{path}"))
 ```
 
+> If you run again your simulation, you'll see in the result page that some requests are now labelled with the slug of the item that have been randomly selected.
+
 Ok cool, now it's randomized ! We have a first coherent visitor journey. 
 Let's tidy up things before we go on with more complex flows. 
 
@@ -246,7 +248,8 @@ And then view cart :
                     .exec(addRandomProduct)
                     .exec(viewCart);
 ```
-## Example
+> Let's run again the simulation to ensure everything is working as expected and that we see the new add product and view cart requests. 
+
 Ok now our users have an item in their carts, but they can't checkout as they are not logged in. Let's log them in. 
 
 ## Save global variables
@@ -270,6 +273,7 @@ Ok now our users have an item in their carts, but they can't checkout as they ar
                     .exec(viewCart)
                     .exec(login);
 ```
+> Run again the simulation, in the `Requests and Responses per Second` graph you should see an error.
 
 And that is not functional, we get an error on the login attempt. Why will you ask me ?  
 Because Spring Security protects forms from csrf attacks by expecting a **CSRF token** that we did not provide. 
@@ -296,6 +300,7 @@ And then we can simply call this variable in our login form :
                     .formParam("password", "pass")
             );
 ```
+> Let's run once more the simulation to ensure the previously witnessed error disappeared.
 
 Now it works, we can proceed to checkout : 
 
@@ -381,6 +386,7 @@ So now we have everything we need to perform that automated check :
 
 You'll notice that I inverted the login and the view cart requests. That is because if users are not already logged in when accessing their cart, they are redirected to the login page, where obviously the `#grandTotal`cannot be found. 
 
+> Let's run that simulation to see if our checks are working as expected. Failed checks will appear in the `Errors per Second` graph. 
 
 OK nice, now we got ourselves a nice purchase flow. But all our users are expected to purchase? Unfortunately not. 
 If we want to be realistic, we need to model that as well in our tests. 
@@ -463,8 +469,10 @@ now that I said that, let's first perform a soak test :
 > After the test has run on the cloud we can take a quick tour on the results.   
 > Notably the one I want to emphasize lies in the **Users** tab.   
 > 
-> Here, our open injection profile directly shapes the **Users Arrival Rate**  which shall reflect a **constantUsersPerSec**, the rest is determined by the duration of the flow of a single user. 
+> Here, our open injection profile directly shapes the **Users Arrival Rate**  which shall reflect a **constantUsersPerSec**, the rest is determined by the duration of the flow of a single user.   
 > This dependence is completely reversed when we use a closed model. 
+
+> One can also take a look at the `Summary` tab where stats are presented by requests. A quick look at the count will show that proportions between flows were respected. 
 
 Ok now let's progressively push a bit our app to see how it responds to higher loads. Let's make it a capacity test !
 
@@ -516,3 +524,10 @@ For that we are going to use **assertions**, you can find all documentation [her
 
 > We can see in the interface that the assertion has probably failed, and that is something we can use to fail a CI for instance. 
 
+## Conclusion
+
+We had a tour of many ways to use the gatling DSL to simulate as closely as possible users actual behaviour, but of course we could not cover in this workshop the nitty-gritty details of all the concepts. 
+Our documentation will cover these thoroughly for the [Gatling DSL](https://gatling.io/docs/gatling/), as well as [Cloud](https://gatling.io/docs/enterprise/cloud/) and [Self-Hosted](https://gatling.io/docs/enterprise/self-hosted/) version.
+
+Thank you for sticking with us until now, hope you had a good time ! 
+Xoxo
