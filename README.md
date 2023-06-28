@@ -56,30 +56,31 @@ public class DemostoreSimulation extends Simulation {
 - 3 : The name of your scenario as it will appear in the reports.
 - 4 : The name of the request as it will appear on the reports
 - 5 : The METHOD and PATH of the request
-- 6 : The injection profile. Here we define a smoke test, we shoot once 1 user.
+- 6 : The injection profile. Here we define a smoke test, we shoot once 1 user, just to ensure the test in working fine.
 
 
 > We could run this simulation on the cloud to familiarize with the interface. 
-> But first, we need to package this simulation into a nice jar file. In order to do so we'll use the gatling maven plugin : 
+> But first, we need to package this simulation into a nice jar file. In order to do so we'll use the gatling maven plugin.  
 > 
+> Run the following command at the root of this project:
 > ```bash 
 > ./mvnw gatling:enterprisePackage
 > ```
 > 
 > That just created a gatling readable package in the form of a jar file containing a bit of metadata to build a nice cloud experience.  
 > 
-> Nice, now we can go to our [cloud](https://cloud.gatling.io/), in the simulation tab hit **create**. 
-> - Enter a name for the simulation, pick the default team and hit **create new package** since you don't already have one available.  
-> - Choose a name for your package, browse your laptop to the `/target/gatling-demostore-3.8.4-shaded.jar` that has been created previously.
-> - Pick the only available simulation class, the one we will be working on.
-> - Finally, select your favorite location. Just so you know, our demostores are deployed in Paris, might as well be close to them but not mandatory, if you feel Japanese today follow your instincts.
-> - Hit **save** to create your simulation. Now it is time to give it a first go, you can click on the start simulation button.
+> Nice, now we can go to our [cloud](https://cloud.gatling.io/), in the `Simulation` tab, then hit **Create**. 
+> - Enter a name for the simulation, pick the default team and hit **Create new package** since you don't already have one available.  
+> - Choose a name for your package, browse your laptop to the `gatling-workshop/target/gatling-demostore-3.9.5-shaded.jar` that has been created previously.
+> - In the classname field, pick the only available simulation class, the one we will be working on.
+> - Finally, select your favorite location for your load generators to be spawned. Just so you know, our demostores are deployed in Paris, might as well be close to them but not mandatory, if you feel Japanese today follow your instincts.
+> - Hit **Save** to create your simulation. Now it is time to give it a first go, you can click on the start simulation button.
 > 
 > In about a minute or so, you'll get your graphs ready, in the meantime we can go on with the workshop !
 
 # Explore the DSL
 
-Now, usually when users browse glasses, they do not simply load the home page. Let's make them browse through the "all" category and click on a few items.
+Now, usually when users browse our shop, they do not simply load the home page. Let's make them browse through the "all" category and click on a few items.
 Of course, they are not robots, so we'll also add artificial pauses, to make it more realistic.
 
 ## Chain requests
@@ -103,8 +104,8 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
 > 
 > But going to the interface to upload the package and start the simulation is a bit cumbersome, and as we are going to do it a bunch of time, I suggest we take a different approach: building and uploading the package to the cloud in one single CLI command.    
 > In order to do so, we first need to create an **API token**.   
-> On the **token** page, hit **create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI (No need to configure team roles, as you already have the highest role at the organization level).  
-> Click **save** to generate the token, copy and paste it in the pom.xml under the `gatling-maven-plugin` section like so :
+> On the **API Tokens** page, hit **Create**, give it a name and select the **Configure** Organization role, which will give it all the permissions we'll need to upload packages and start simulations from the CLI (No need to configure team roles, as you already have the highest role at the organization level).  
+> Click **Save** to generate the token, copy and paste it in the `pom.xml` under the `gatling-maven-plugin` section like so :
 > 
 > ```xml
 > 
@@ -118,8 +119,8 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
 > </plugin>
 > ```
 > We also need to configure maven to use the previously created package.   
-> Go to the **package** page, on the right side of your package row, there is a **copy to clipboard** button.
-> Then add it next to the `<apiToken>` configuration under `<packageId>`
+> Go to the **Packages** page, on the right side of your package row, there is a **Copy package ID to clipboard** button.
+> Then, in the `pom.xml` file, add it next to the `<apiToken>` configuration under `<packageId>`
 > 
 > Finally, you can now 
 > ```bash 
@@ -133,12 +134,12 @@ Of course, they are not robots, so we'll also add artificial pauses, to make it 
 
 ## Feeders 
 
-Nice ! It's starting to look like an actual user workflow. But we still have a problem. Do you see it coming ? ...  
-If we were to simulate thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit shall we ?
+Nice! It's starting to look like an actual user workflow. But we still have a problem. Do you see it coming ? ...  
+If we were to simulate thousands of users, it would be highly unlikely for them to browse exactly the same items. Let's randomize that a bit, shall we ?
 
 
 So we'll create a CSV feeder from which each simulated user will randomly choose a particular type of glasses to browse.
-So let's add a data/search.csv file containing : 
+So let's add a `src/test/resources/data/search.csv` file containing : 
 
 ```csv 
 path, id, price
@@ -254,9 +255,11 @@ Ok now our users have an item in their carts, but they can't checkout as they ar
 
 ## Save global variables
 
+The store provides a `post` endpoint to log in. It also provides dummy users you can use, like `user1/pass`.
+
 ```java 
     ChainBuilder login = exec(http("Login page").get("/login"))
-            .exec(http("Login").post("login")
+            .exec(http("Login").post("/login")
                     .formParam("username", "user1")
                     .formParam("password", "pass")
             );
@@ -275,14 +278,14 @@ Ok now our users have an item in their carts, but they can't checkout as they ar
 ```
 > Run again the simulation, in the `Requests and Responses per Second` graph you should see an error.
 
-And that is not functional, we get an error on the login attempt. Why will you ask me ?  
-Because Spring Security protects forms from csrf attacks by expecting a **CSRF token** that we did not provide. 
-But in order to add it in the request, we must first retrieve it from the home page, and that is a great way to learn variabilisation in gatling.  
+If you try and run the simulation as it is, you will see that is not functional, that we get an error on the login attempt. Why will you ask me ?  
+Because the store's Spring Security layer protects forms from CSRF attacks by expecting a **CSRF token** that we did not provide. 
+But in order to add it in the request, we must first retrieve it from the home page, and that is a great way to learn variabilization in Gatling.  
 Damn this transition is so neat it looks like it was all part of a master plan. 
 
 The `check` keyword in gatling DSL allows for many things related to reading the response we get from the request. 
 One can perform actual checks, like verifying the presence of a string, or a return value. 
-But it is also useful to save response elements in a variable that will be accessible later on. That is what we are going to do to retrieve the _csrf token.
+But it is also useful to save response elements in a variable that will be accessible later on. That is what we are going to do to retrieve the `_csrf` token.
 
 ```java 
     ChainBuilder homePage = exec(http("Load Home Page")
@@ -337,8 +340,8 @@ Let's initialize the expected cart total to 0.00 at the beginning :
 ```
 
 ```java 
-            scenario("Browse glasses")
-                    .exec(session -> session.set(CART_TOTAL_LABEL, 0.00))
+        scenario("Browse glasses")
+                .exec(session -> session.set(CART_TOTAL_LABEL, 0.00))
 ```
 
 Then we want to keep track of this total each time a new item is added to the cart : 
