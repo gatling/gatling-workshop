@@ -532,5 +532,9 @@ For that we are going to use **assertions**, you can find all documentation [her
 We had a tour of many ways to use the gatling DSL to simulate as closely as possible users actual behaviour, but of course we could not cover in this workshop the nitty-gritty details of all the concepts. 
 Our documentation will cover these thoroughly for the [Gatling DSL](https://gatling.io/docs/gatling/), as well as [Cloud](https://gatling.io/docs/enterprise/cloud/) and [Self-Hosted](https://gatling.io/docs/enterprise/self-hosted/) version.
 
-Thank you for sticking with us until now, hope you had a good time ! 
+Thank you for sticking with us until now, hope you had a good time! 
+
+Please, give us some feedback to help us improve this workshop!
+https://openfeedback.io/sunnytech2022/2023-06-29/venez-faire-tomber-notre-appli
+
 Xoxo
