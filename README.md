@@ -297,7 +297,7 @@ And then we can simply call this variable in our login form :
 
 ```java 
     ChainBuilder login = exec(http("Login page").get("/login"))
-            .exec(http("Login").post("login")
+            .exec(http("Login").post("/login")
                     .formParam("_csrf", "#{csrfValue}")
                     .formParam("username", "user1")
                     .formParam("password", "pass")
